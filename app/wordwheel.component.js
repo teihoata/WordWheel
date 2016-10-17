@@ -27,16 +27,21 @@ System.register(['angular2/core', './wordwheel.service'], function(exports_1, co
                     this.matchedWords = [];
                 }
                 WordWheelComponent.prototype.calculateWord = function () {
-                    var _this = this;
                     if (this.letters != null && this.letters.length == 7) {
                         this.letters = this.letters.toLocaleUpperCase();
                         var words = new wordwheel_service_1.WordWheelService().getWords();
                         var matchedWords = [];
+                        //if ? is present in string, use regular expressions to find matches
+                        var forwardRegEx = this.letters.replace("?", "[A-Z]");
+                        var reverseRegEx = this.letters.split("").reverse().join("").replace("?", "[A-Z]");
                         words.forEach(function (element) {
-                            var addWord = true;
-                            var reversed = element.split("").reverse().join("");
-                            var megaString = element + element + reversed + reversed;
-                            if (megaString.indexOf(_this.letters) >= 0) {
+                            //each mega string is a combination of the word repeated on itself
+                            //this means any string can start at any position and loop back on itself and still be found
+                            var megaString = element + element;
+                            var matchedWordForward = megaString.match(new RegExp("(" + forwardRegEx + ")"));
+                            var matchedWordReversed = megaString.match(new RegExp("(" + reverseRegEx + ")"));
+                            if ((matchedWordForward != null && matchedWordForward.length > 0)
+                                || (matchedWordReversed != null && matchedWordReversed.length > 0)) {
                                 matchedWords.push(element);
                             }
                         });
@@ -50,7 +55,7 @@ System.register(['angular2/core', './wordwheel.service'], function(exports_1, co
                         }
                     }
                     else {
-                        this.title = 'You need to enter at least 7 characters';
+                        this.title = 'You need to enter at least 7 characters - other lengths coming soon';
                         this.matchedWords = [];
                     }
                 };
